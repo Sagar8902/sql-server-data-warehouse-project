@@ -53,6 +53,10 @@ The Gold layer contains **business-ready data** optimized for analytics and repo
 The following diagram shows how data moves through the different stages of the warehouse.
 
 ![Data Flow](docs/data_flow.png)
+![Data Model](docs/data_model.png)
+
+(docs/data_catelog.md)
+
 
 ```text
 ERP CSV Files ──┐
