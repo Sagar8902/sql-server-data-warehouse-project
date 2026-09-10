@@ -55,7 +55,7 @@ The following diagram shows how data moves through the different stages of the w
 ![Data Flow](docs/data_flow.png)
 ![Data Model](docs/data_model.png)
 
-```text
+
 ERP CSV Files ──┐
                 ├──> Bronze ──> Silver ──> Gold ──> Analytics
 CRM CSV Files ──┘
