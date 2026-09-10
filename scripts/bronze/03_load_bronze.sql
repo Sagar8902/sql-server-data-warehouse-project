@@ -1,44 +1,49 @@
 /*
 ================================================================================
-  BRONZE LAYER - DATA LOADING
+  BRONZE LAYER - DATA LOADING STORED PROCEDURE
 ================================================================================
+
   Project     : Data Warehouse and Analytics
   Layer       : Bronze
-  Script      : Load Bronze Tables
   Procedure   : bronze.load_bronze
 
+  Overview:
+      This stored procedure loads raw data from CRM and ERP CSV files
+      into the Bronze layer of the Data Warehouse.
+
   Purpose:
-      Load raw data from CRM and ERP CSV source files into the Bronze layer.
+      - Truncate existing Bronze layer data.
+      - Load fresh data from source CSV files using BULK INSERT.
+      - Validate loaded data using SELECT statements and row counts.
+      - Handle errors using TRY...CATCH.
 
-  ETL Process:
-      1. Truncate existing Bronze table data.
-      2. Bulk load fresh data from CSV files.
-      3. Display loaded data for validation.
-      4. Display row counts for basic load verification.
-      5. Handle and report errors using TRY...CATCH.
-
-  Data Sources:
-      CRM
-        - cust_info.csv
-        - prd_info.csv
-        - sales_details.csv
-
-      ERP
-        - cust_az12.csv
-        - loc_a101.csv
-        - px_cat_g1v2.csv
-
-  Grain:
-      The procedure loads data at the same grain as the source CSV files.
-      No transformation or aggregation is performed in the Bronze layer.
+  Source Systems:
+      CRM : Customer, Product, and Sales data
+      ERP : Customer, Location, and Product Category data
 
   Loading Strategy:
-      Full Refresh
-        - Existing data is truncated.
-        - Complete source data is loaded again.
+      Full Load / Full Refresh
+      - Existing data is removed using TRUNCATE TABLE.
+      - Complete source data is loaded again.
 
-  Execution:
-      EXEC bronze.load_bronze;
+  Transformation:
+      No transformation is performed in the Bronze layer.
+      Data is loaded as close to the source format as possible.
+
+  Grain:
+      The grain of each Bronze table remains the same as the
+      corresponding source CSV file.
+
+  Target Tables:
+      CRM
+        - bronze.crm_cust_info
+        - bronze.crm_prd_info
+        - bronze.crm_sales_details
+
+      ERP
+        - bronze.erp_cust_az12
+        - bronze.erp_loc_a101
+        - bronze.erp_px_cat_g1v2
 
 ================================================================================
 */
@@ -46,263 +51,224 @@
 
 /*
 ================================================================================
-  CREATE STORED PROCEDURE
+  CREATE BRONZE LOAD STORED PROCEDURE
 ================================================================================
 */
 
-CREATE OR ALTER PROCEDURE bronze.load_bronze
-AS
+CREATE OR ALTER PROCEDURE bronze.load_bronze AS
 BEGIN
+	BEGIN TRY
+	
+
+	/*
+	========================================================================
+	  CRM SYSTEM
+	========================================================================
+	*/
+
+	PRINT'=============================';
+	PRINT'--INSERTING DATA OF CRM SYSTEM--';
+	PRINT'=============================';
+
+
+	/*
+	------------------------------------------------------------------------
+	  1. CRM CUSTOMER
+	------------------------------------------------------------------------
+	  Target Table : bronze.crm_cust_info
+	  Grain        : One row per customer
+	  Source File  : cust_info.csv
+	------------------------------------------------------------------------
+	*/
+
+	PRINT'TRUNCATING TABLE >> bronze.crm_cust_info';
+	TRUNCATE TABLE bronze.crm_cust_info
+
+	PRINT'INSERTING INTO >> bronze.crm_cust_info';
+	BULK INSERT bronze.crm_cust_info
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\cust_info.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
+
+	SELECT * FROM bronze.crm_cust_info;
+
+	SELECT COUNT(*) FROM bronze.crm_cust_info;
+
+
+	/*
+	------------------------------------------------------------------------
+	  2. CRM PRODUCT
+	------------------------------------------------------------------------
+	  Target Table : bronze.crm_prd_info
+	  Grain        : One row per product record
+	  Source File  : prd_info.csv
+	------------------------------------------------------------------------
+	*/
+
+	PRINT'TRUNCATING TABLE >> bronze.crm_prd_info';
+	TRUNCATE TABLE bronze.crm_prd_info
+
+	PRINT'INSERTING INTO >> bronze.crm_prd_info';
+	BULK INSERT bronze.crm_prd_info
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\prd_info.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
+
+	SELECT * FROM bronze.crm_prd_info;
+
+	SELECT COUNT(*) FROM bronze.crm_prd_info;
+
+
+	/*
+	------------------------------------------------------------------------
+	  3. CRM SALES
+	------------------------------------------------------------------------
+	  Target Table : bronze.crm_sales_details
+	  Grain        : One row per sales transaction / order line
+	  Source File  : sales_details.csv
+	------------------------------------------------------------------------
+	*/
+
+	PRINT'TRUNCATING TABLE >> bronze.crm_sales_details';
+	TRUNCATE TABLE bronze.crm_sales_details
+
+	PRINT'INSERTING INTO >> bronze.crm_sales_details';
+	BULK INSERT bronze.crm_sales_details
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\sales_details.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
+
+	SELECT * FROM bronze.crm_sales_details;
+
+	SELECT COUNT(*) FROM bronze.crm_sales_details;
+
+
+	/*
+	========================================================================
+	  ERP SYSTEM
+	========================================================================
+	*/
+
+	PRINT'=============================';
+	PRINT'--INSERTING DATA OF ERP SYSTEM--';
+	PRINT'=============================';
 
-    BEGIN TRY
+
+	/*
+	------------------------------------------------------------------------
+	  4. ERP CUSTOMER
+	------------------------------------------------------------------------
+	  Target Table : bronze.erp_cust_az12
+	  Grain        : One row per customer
+	  Source File  : cust_az12.csv
+	------------------------------------------------------------------------
+	*/
 
-        /*
-        ============================================================================
-          CRM SYSTEM
-        ============================================================================
-        */
+	PRINT'TRUNCATING TABLE >> bronze.erp_cust_az12';
+	TRUNCATE TABLE bronze.erp_cust_az12
 
-        PRINT '=============================================';
-        PRINT '        LOADING CRM DATA INTO BRONZE        ';
-        PRINT '=============================================';
+	PRINT'INSERTING INTO >> bronze.erp_cust_az12';
+	BULK INSERT bronze.erp_cust_az12
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\cust_az12.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
 
+	SELECT * FROM bronze.erp_cust_az12;
 
-        /*
-        ------------------------------------------------------------------------
-          1. CRM CUSTOMER
-        ------------------------------------------------------------------------
-          Target : bronze.crm_cust_info
-          Grain  : One row per customer
-        ------------------------------------------------------------------------
-        */
+	SELECT COUNT(*) FROM bronze.erp_cust_az12;
 
-        PRINT 'TRUNCATING TABLE >> bronze.crm_cust_info';
 
-        TRUNCATE TABLE bronze.crm_cust_info;
+	/*
+	------------------------------------------------------------------------
+	  5. ERP LOCATION
+	------------------------------------------------------------------------
+	  Target Table : bronze.erp_loc_a101
+	  Grain        : One row per customer location record
+	  Source File  : loc_a101.csv
+	------------------------------------------------------------------------
+	*/
 
+	PRINT'TRUNCATING TABLE >> bronze.erp_loc_a101';
+	TRUNCATE TABLE bronze.erp_loc_a101
 
-        PRINT 'INSERTING DATA >> bronze.crm_cust_info';
+	PRINT'INSERTING INTO >> bronze.erp_loc_a101';
+	BULK INSERT bronze.erp_loc_a101
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\loc_a101.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
 
-        BULK INSERT bronze.crm_cust_info
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\cust_info.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
+	SELECT * FROM bronze.erp_loc_a101;
 
+	SELECT COUNT(*) FROM bronze.erp_loc_a101;
 
-        PRINT 'ROWS LOADED >> bronze.crm_cust_info';
 
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.crm_cust_info;
+	/*
+	------------------------------------------------------------------------
+	  6. ERP PRODUCT CATEGORY
+	------------------------------------------------------------------------
+	  Target Table : bronze.erp_px_cat_g1v2
+	  Grain        : One row per product category / subcategory record
+	  Source File  : px_cat_g1v2.csv
+	------------------------------------------------------------------------
+	*/
 
+	PRINT'TRUNCATING TABLE >> bronze.erp_px_cat_g1v2';
+	TRUNCATE TABLE bronze.erp_px_cat_g1v2
 
-        /*
-        ------------------------------------------------------------------------
-          2. CRM PRODUCT
-        ------------------------------------------------------------------------
-          Target : bronze.crm_prd_info
-          Grain  : One row per product record
-        ------------------------------------------------------------------------
-        */
+	PRINT'INSERTING INTO >> bronze.erp_px_cat_g1v2';
+	BULK INSERT bronze.erp_px_cat_g1v2
+	FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\px_cat_g1v2.csv'
+	WITH (
+		FIRSTROW = 2,
+		FIELDTERMINATOR = ',',
+		TABLOCK
+	);
 
-        PRINT 'TRUNCATING TABLE >> bronze.crm_prd_info';
+	SELECT * FROM bronze.erp_px_cat_g1v2;
 
-        TRUNCATE TABLE bronze.crm_prd_info;
+	SELECT COUNT(*) FROM bronze.erp_px_cat_g1v2;
 
 
-        PRINT 'INSERTING DATA >> bronze.crm_prd_info';
+	/*
+	========================================================================
+	  LOAD COMPLETED
+	========================================================================
+	*/
 
-        BULK INSERT bronze.crm_prd_info
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\prd_info.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
+	PRINT'=============================';
+	PRINT'--BRONZE LOAD COMPLETED--';
+	PRINT'=============================';
 
 
-        PRINT 'ROWS LOADED >> bronze.crm_prd_info';
+	END TRY
 
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.crm_prd_info;
 
+	/*
+	========================================================================
+	  ERROR HANDLING
+	========================================================================
+	*/
 
-        /*
-        ------------------------------------------------------------------------
-          3. CRM SALES
-        ------------------------------------------------------------------------
-          Target : bronze.crm_sales_details
-          Grain  : One row per sales transaction / order line
-        ------------------------------------------------------------------------
-        */
+	BEGIN CATCH
 
-        PRINT 'TRUNCATING TABLE >> bronze.crm_sales_details';
+		-- Error handling can be added here.
 
-        TRUNCATE TABLE bronze.crm_sales_details;
-
-
-        PRINT 'INSERTING DATA >> bronze.crm_sales_details';
-
-        BULK INSERT bronze.crm_sales_details
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_crm\sales_details.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
-
-
-        PRINT 'ROWS LOADED >> bronze.crm_sales_details';
-
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.crm_sales_details;
-
-
-        /*
-        ============================================================================
-          ERP SYSTEM
-        ============================================================================
-        */
-
-        PRINT '=============================================';
-        PRINT '        LOADING ERP DATA INTO BRONZE        ';
-        PRINT '=============================================';
-
-
-        /*
-        ------------------------------------------------------------------------
-          4. ERP CUSTOMER
-        ------------------------------------------------------------------------
-          Target : bronze.erp_cust_az12
-          Grain  : One row per customer
-        ------------------------------------------------------------------------
-        */
-
-        PRINT 'TRUNCATING TABLE >> bronze.erp_cust_az12';
-
-        TRUNCATE TABLE bronze.erp_cust_az12;
-
-
-        PRINT 'INSERTING DATA >> bronze.erp_cust_az12';
-
-        BULK INSERT bronze.erp_cust_az12
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\cust_az12.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
-
-
-        PRINT 'ROWS LOADED >> bronze.erp_cust_az12';
-
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.erp_cust_az12;
-
-
-        /*
-        ------------------------------------------------------------------------
-          5. ERP LOCATION
-        ------------------------------------------------------------------------
-          Target : bronze.erp_loc_a101
-          Grain  : One row per customer location record
-        ------------------------------------------------------------------------
-        */
-
-        PRINT 'TRUNCATING TABLE >> bronze.erp_loc_a101';
-
-        TRUNCATE TABLE bronze.erp_loc_a101;
-
-
-        PRINT 'INSERTING DATA >> bronze.erp_loc_a101';
-
-        BULK INSERT bronze.erp_loc_a101
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\loc_a101.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
-
-
-        PRINT 'ROWS LOADED >> bronze.erp_loc_a101';
-
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.erp_loc_a101;
-
-
-        /*
-        ------------------------------------------------------------------------
-          6. ERP PRODUCT CATEGORY
-        ------------------------------------------------------------------------
-          Target : bronze.erp_px_cat_g1v2
-          Grain  : One row per product category/subcategory record
-        ------------------------------------------------------------------------
-        */
-
-        PRINT 'TRUNCATING TABLE >> bronze.erp_px_cat_g1v2';
-
-        TRUNCATE TABLE bronze.erp_px_cat_g1v2;
-
-
-        PRINT 'INSERTING DATA >> bronze.erp_px_cat_g1v2';
-
-        BULK INSERT bronze.erp_px_cat_g1v2
-        FROM 'C:\# Data Project\# Data Warehouse - Barra\datasets\source_erp\px_cat_g1v2.csv'
-        WITH
-        (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = ',',
-            TABLOCK
-        );
-
-
-        PRINT 'ROWS LOADED >> bronze.erp_px_cat_g1v2';
-
-        SELECT COUNT(*) AS RowCount
-        FROM bronze.erp_px_cat_g1v2;
-
-
-        /*
-        ============================================================================
-          LOAD COMPLETED
-        ============================================================================
-        */
-
-        PRINT '=============================================';
-        PRINT '       BRONZE LOAD COMPLETED SUCCESSFULLY   ';
-        PRINT '=============================================';
-
-
-    END TRY
-
-
-    /*
-    ============================================================================
-      ERROR HANDLING
-    ============================================================================
-    */
-
-    BEGIN CATCH
-
-        PRINT '=============================================';
-        PRINT '              BRONZE LOAD FAILED            ';
-        PRINT '=============================================';
-
-        PRINT 'ERROR MESSAGE: ' + ERROR_MESSAGE();
-        PRINT 'ERROR NUMBER : ' + CAST(ERROR_NUMBER() AS NVARCHAR(10));
-        PRINT 'ERROR LINE   : ' + CAST(ERROR_LINE() AS NVARCHAR(10));
-
-        THROW;
-
-    END CATCH
+	END CATCH
 
 END;
 GO
@@ -313,10 +279,9 @@ GO
   EXECUTE STORED PROCEDURE
 ================================================================================
 
-  Run the following command to load all CRM and ERP source data
-  into the Bronze layer.
+  Use the following command to execute the Bronze layer data load:
+
+      EXEC bronze.load_bronze;
 
 ================================================================================
 */
-
-EXEC bronze.load_bronze;
