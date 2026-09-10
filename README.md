@@ -55,12 +55,24 @@ The following diagram shows how data moves through the different stages of the w
 ![Data Flow](docs/data_flow.png)
 ![Data Model](docs/data_model.png)
 
-
-![Data Catelog](data_catelog.md)
-
-
-
 ```text
 ERP CSV Files ──┐
                 ├──> Bronze ──> Silver ──> Gold ──> Analytics
 CRM CSV Files ──┘
+
+
+## 📚 Data Catalog
+
+The **Data Catalog** provides detailed documentation of the Gold layer, including tables, columns, data types, and business descriptions.
+
+It helps users understand the structure and meaning of the data model.
+
+### 📖 View Data Catalog
+
+👉 **[Open the Data Catalog](docs/data_catalog.md)**
+
+The catalog documents the following Gold layer objects:
+
+* `gold.dim_customers`
+* `gold.dim_products`
+* `gold.fact_sales`
